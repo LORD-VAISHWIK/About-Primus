@@ -244,6 +244,13 @@ const BackgroundCanvas = () => {
     if (!ctx) return;
     let particlesArray;
 
+    // Mobile device detection
+    const isMobileDevice = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+             (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+             window.innerWidth <= 1024; // Include tablets and small laptops
+    };
+    
     const setupCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -271,7 +278,9 @@ const BackgroundCanvas = () => {
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-        ctx.fillStyle = 'rgba(12, 84, 211, 0.5)';
+        // Brighter on mobile devices, normal on desktop
+        const opacity = isMobileDevice() ? 0.8 : 0.5;
+        ctx.fillStyle = `rgba(12, 84, 211, ${opacity})`;
         ctx.fill();
       }
       update() {
@@ -310,9 +319,11 @@ const BackgroundCanvas = () => {
           let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
                          ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
           if (distance < (canvas.width / 7) * (canvas.height / 7)) {
-            let opacityValue = 1 - (distance / 20000);
+            let baseOpacity = 1 - (distance / 20000);
+            // Increase line brightness on mobile devices
+            let opacityValue = isMobileDevice() ? Math.min(baseOpacity * 1.5, 1) : baseOpacity;
             ctx.strokeStyle = 'rgba(12, 84, 211,' + opacityValue + ')';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = isMobileDevice() ? 1.5 : 1;
             ctx.beginPath();
             ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
             ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
@@ -372,7 +383,9 @@ const BackgroundCanvas = () => {
       width: '100% !important', 
       height: '100% !important', 
       zIndex: '-10 !important', 
-      opacity: '0.4 !important', 
+      opacity: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+               window.innerWidth <= 1024 ? '0.6 !important' : '0.4 !important',
       pointerEvents: 'none !important',
       background: 'transparent !important',
       willChange: 'transform',
