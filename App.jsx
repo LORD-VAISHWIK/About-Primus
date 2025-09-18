@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Component } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, Component } from 'react';
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -20,13 +20,13 @@ class ErrorBoundary extends Component {
             return (
                 <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
                     <div className="text-center text-white">
-                        <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-                        <p className="text-gray-400 mb-4">We're sorry, but there was an error loading the page.</p>
+                        <h1 className="text-2xl font-bold mb-4">A Glitch in the System</h1>
+                        <p className="text-gray-400 mb-4">An unexpected error occurred. Please reload the interface.</p>
                         <button 
                             onClick={() => window.location.reload()} 
-                            className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors"
+                            className="bg-[#0C54D3] hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors glow-effect"
                         >
-                            Reload Page
+                            Reload Interface
                         </button>
                     </div>
                 </div>
@@ -40,11 +40,27 @@ class ErrorBoundary extends Component {
 // --- Global Styles ---
 // We inject the CSS directly into the document head for a single-file setup.
 const GlobalStyles = () => (
-  <style>{`
+  <>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>{`
+    :root {
+        --brand-primary: #0C54D3;
+        --brand-secondary: #1e66f5;
+        --background-deep: #0A0A0A;
+        --text-primary: #E0E0E0;
+        --text-secondary: #8A8899;
+        --border-color: rgba(12, 84, 211, 0.2);
+    }
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
     body {
         font-family: 'Inter', sans-serif;
-        background-color: #0A0A0A;
-        color: #E0E0E0;
+        background-color: var(--background-deep);
+        color: var(--text-primary);
         overflow-x: hidden;
         margin: 0;
         padding: 0;
@@ -103,6 +119,39 @@ const GlobalStyles = () => (
     .glow-effect {
         box-shadow: 0 0 15px rgba(12, 84, 211, 0.5), 0 0 30px rgba(12, 84, 211, 0.3);
     }
+    .glow-button {
+        background: var(--brand-primary);
+        color: white;
+        font-weight: 700;
+        border-radius: 9999px;
+        padding: 14px 28px;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 0 0 20px 0 rgba(12, 84, 211, 0.5), 0 0 30px 0 rgba(12, 84, 211, 0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+    }
+    .glow-button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 0 30px 0 rgba(12, 84, 211, 0.8), 0 0 40px 0 rgba(12, 84, 211, 0.5);
+    }
+    .glass-header {
+        background-color: rgba(10, 10, 10, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .section-title {
+        font-size: clamp(3rem, 6vw, 5.5rem);
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+    }
+    .section-subtitle {
+        font-size: clamp(1.1rem, 2vw, 1.3rem);
+        color: var(--text-secondary);
+        max-width: 650px;
+        margin: 1.5rem auto 0;
+    }
     .page {
       animation: fadeIn 0.6s ease-out forwards;
       opacity: 0;
@@ -131,7 +180,26 @@ const GlobalStyles = () => (
     .prose-invert h2 { color: #fff; }
     .prose-invert a { color: #60a5fa; }
     .prose-invert a:hover { color: #93c5fd; }
+    @keyframes move-stars {
+        from { transform: translateY(0px); }
+        to { transform: translateY(-2000px); }
+    }
+    .stars {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+    .stars .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: move-stars 200s linear infinite;
+    }
   `}</style>
+  </>
 );
 
 
@@ -291,6 +359,27 @@ const BackgroundCanvas = () => {
   />;
 };
 
+// --- Animated Starry Background Component (Alternative) ---
+const StarryBackground = () => {
+    useEffect(() => {
+        const starsContainer = document.querySelector('.stars');
+        if (!starsContainer || starsContainer.children.length > 0) return;
+
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            const size = Math.random() * 3;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.top = `${Math.random() * 200}%`;
+            star.style.left = `${Math.random() * 100}%`;
+            starsContainer.appendChild(star);
+        }
+    }, []);
+
+    return <div className="stars"></div>;
+};
+
 // --- Layout Components ---
 const Header = ({ activePage, setActivePage, showModal }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -304,7 +393,7 @@ const Header = ({ activePage, setActivePage, showModal }) => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const navItems = ['home', 'features', 'platform', 'pricing'];
+    const navItems = ['home', 'features', 'platform', 'security', 'pricing'];
 
     return (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0A0A0A]/80 backdrop-blur-sm shadow-lg' : ''}`}>
@@ -340,10 +429,10 @@ const Header = ({ activePage, setActivePage, showModal }) => {
 };
 
 const Footer = ({ setActivePage, showModal }) => (
-    <footer className="bg-gray-900/50 border-t border-gray-800">
+    <footer className="bg-gray-900/50 border-t border-gray-800 mt-auto">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-                <div className="col-span-2 lg:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+                <div className="col-span-1 md:col-span-2 lg:col-span-1">
                      <a onClick={() => setActivePage('home')} className="flex items-center space-x-2 cursor-pointer">
                         <span className="text-2xl font-bold text-white">Primus</span>
                     </a>
@@ -354,6 +443,7 @@ const Footer = ({ setActivePage, showModal }) => (
                     <ul className="mt-4 space-y-3">
                         <li><a onClick={() => setActivePage('features')} className="text-gray-400 hover:text-white transition-colors cursor-pointer">Features</a></li>
                         <li><a onClick={() => setActivePage('platform')} className="text-gray-400 hover:text-white transition-colors cursor-pointer">Platform</a></li>
+                        <li><a onClick={() => setActivePage('security')} className="text-gray-400 hover:text-white transition-colors cursor-pointer">Security</a></li>
                         <li><a onClick={() => setActivePage('pricing')} className="text-gray-400 hover:text-white transition-colors cursor-pointer">Pricing</a></li>
                     </ul>
                 </div>
@@ -371,7 +461,7 @@ const Footer = ({ setActivePage, showModal }) => (
                     </ul>
                 </div>
             </div>
-            <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center">
+            <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center max-w-6xl mx-auto">
                 <p className="text-gray-500">&copy; 2025 Primus Systems. All rights reserved.</p>
             </div>
         </div>
@@ -468,6 +558,44 @@ const PlatformPage = () => {
                             <p className="text-sm text-gray-400">{tech.role}</p>
                         </div>
                     ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const SecurityPage = () => {
+    const securityPoints = [
+        { title: 'Encryption in Transit', details: ['TLS 1.3 only with Perfect Forward Secrecy', 'Strong ciphers: AES-256-GCM / ChaCha20-Poly1305', 'Hybrid Post-Quantum (Kyber + X25519)', 'Mutual TLS (mTLS) for all internal traffic'] },
+        { title: 'Encryption at Rest', details: ['AES-256-GCM/XTS for all data storage', 'Envelope encryption with per-object keys', 'Keys stored in FIPS 140-3 certified HSM/KMS', 'Automated key rotation policies'] },
+        { title: 'Identity & Access', details: ['Argon2id for password hashing', 'WebAuthn/FIDO2 for passwordless MFA', 'Zero Trust Architecture (ZTA)', 'Continuous authentication and verification'] },
+        { title: 'Key Management', details: ['Centralized Hardware Security Modules (HSM)', 'Split-key governance with quorum approval', 'Automated key lifecycle management', 'Resilient and geographically distributed KMS'] },
+        { title: 'Advanced Protections', details: ['Confidential Computing with SGX/SEV enclaves', 'Signed software supply chain (SLSA)', 'Global threat intelligence monitoring', 'Regular, aggressive red-team testing'] },
+        { title: 'Compliance & Standards', details: ['SOC 2 Type II, ISO/IEC 27001, GDPR/CCPA', 'HIPAA compliant for relevant data', 'FedRAMP High for government contracts', 'Built on NIST SP 800-53 High Impact controls'] }
+    ];
+    return (
+        <section className="py-20 lg:py-32 section-gradient">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center max-w-3xl mx-auto">
+                    <span className="inline-block bg-gray-800 border border-gray-700 text-blue-400 text-sm font-semibold px-4 py-1.5 rounded-full">Enterprise Security</span>
+                    <h2 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-white">Military-Grade Security Architecture</h2>
+                    <p className="mt-6 text-lg text-gray-400">
+                        Our security architecture is not an afterthought; it is the foundation. We employ a multi-layered, defense-in-depth strategy built for the threats of tomorrow.
+                    </p>
+                </div>
+                <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {securityPoints.map((point) => (
+                        <div key={point.title} className="feature-card rounded-2xl p-8 gsap-security-card">
+                            <h3 className="text-2xl font-bold mb-4 text-[#0C54D3]">{point.title}</h3>
+                            <ul className="space-y-2">
+                                {point.details.map(detail => <li key={detail} className="text-gray-400">{detail}</li>)}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-16 max-w-4xl mx-auto text-center p-8 feature-card rounded-2xl">
+                    <h3 className="text-3xl font-bold mb-4 text-white">Security Summary</h3>
+                    <p className="text-lg text-gray-400">TLS 1.3 + PQC hybrid for transit, AES-256-GCM/XTS with HSM envelope encryption for rest, Argon2id + WebAuthn for identity, Zero Trust + mTLS for access, and global compliance frameworks (SOC2, ISO, FedRAMP).</p>
                 </div>
             </div>
         </section>
@@ -671,7 +799,8 @@ export default function App() {
     useEffect(() => {
         // Check if scripts already exist
         if (document.querySelector('script[src*="gsap"]')) {
-            return; // Already loaded, skip
+            setIsLoading(false); // Already loaded, just set loading to false
+            return;
         }
 
         const loadScript = (src) => {
@@ -685,18 +814,26 @@ export default function App() {
             });
         };
 
+        // Add a fallback timeout to prevent infinite loading
+        const fallbackTimeout = setTimeout(() => {
+            console.warn('GSAP loading timeout, showing content anyway');
+            setIsLoading(false);
+        }, 5000);
+
         // Load GSAP first, then ScrollTrigger
         loadScript('https://unpkg.com/gsap@3.12.2/dist/gsap.min.js')
             .then(() => loadScript('https://unpkg.com/gsap@3.12.2/dist/ScrollTrigger.min.js'))
             .then(() => {
+                clearTimeout(fallbackTimeout);
                 setTimeout(() => setIsLoading(false), 100);
             })
             .catch(error => {
+                clearTimeout(fallbackTimeout);
                 console.warn('GSAP loading failed:', error);
                 setIsLoading(false); // Still show content even if GSAP fails
             });
 
-        // No cleanup needed as scripts should persist
+        return () => clearTimeout(fallbackTimeout);
     }, []);
 
     // Page change logic with smooth transitions
@@ -741,7 +878,7 @@ export default function App() {
                 if (ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.kill());
 
                 // Set initial states
-                gsap.set(".gsap-hero-el, .gsap-feature-card, .gsap-tech-icon, .gsap-pricing-card", { 
+                gsap.set(".gsap-hero-el, .gsap-feature-card, .gsap-security-card, .gsap-tech-icon, .gsap-pricing-card", { 
                     opacity: 0, 
                     y: 30, 
                     scale: 1 
@@ -765,6 +902,19 @@ export default function App() {
                         const featureCards = document.querySelectorAll(".gsap-feature-card");
                         if (featureCards.length > 0) {
                             gsap.to(featureCards, { 
+                                duration: 0.8, 
+                                y: 0, 
+                                opacity: 1, 
+                                stagger: 0.1, 
+                                ease: "power2.out",
+                                delay: 0.2
+                            });
+                        }
+                        break;
+                    case 'security':
+                        const securityCards = document.querySelectorAll(".gsap-security-card");
+                        if (securityCards.length > 0) {
+                            gsap.to(securityCards, { 
                                 duration: 0.8, 
                                 y: 0, 
                                 opacity: 1, 
@@ -825,6 +975,7 @@ export default function App() {
         return () => clearTimeout(timeoutId);
     }, [activePage, isLoading]);
 
+
     // Ensure page is visible after animations
     useEffect(() => {
         if (!isLoading) {
@@ -843,6 +994,7 @@ export default function App() {
         switch (activePage) {
             case 'home': return <HomePage setActivePage={handleSetPage} showModal={() => setIsModalOpen(true)} />;
             case 'features': return <FeaturesPage />;
+            case 'security': return <SecurityPage />;
             case 'platform': return <PlatformPage />;
             case 'pricing': return <PricingPage showModal={() => setIsModalOpen(true)} />;
             case 'privacy-policy': return <PrivacyPolicyPage />;
@@ -866,9 +1018,9 @@ export default function App() {
         <ErrorBoundary>
             <GlobalStyles />
             <BackgroundCanvas />
-            <div className="relative z-10" style={{ position: 'relative', zIndex: 10 }}>
+            <div className="relative z-10 min-h-screen flex flex-col">
                 <Header activePage={activePage} setActivePage={handleSetPage} showModal={() => setIsModalOpen(true)} />
-                <main id="main-content" style={{ position: 'relative', zIndex: 10 }}>
+                <main className="flex-1 relative z-10">
                     <div className="page">
                         {renderPage()}
                     </div>
