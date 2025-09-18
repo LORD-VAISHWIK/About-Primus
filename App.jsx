@@ -56,6 +56,12 @@ const GlobalStyles = () => (
     html {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     body {
         font-family: 'Inter', sans-serif;
@@ -246,10 +252,17 @@ const BackgroundCanvas = () => {
 
     const mouse = { x: null, y: null, radius: 150 };
     const handleMouseMove = (event) => {
-      mouse.x = event.x;
-      mouse.y = event.y;
+      mouse.x = event.x || (event.touches && event.touches[0] ? event.touches[0].clientX : null);
+      mouse.y = event.y || (event.touches && event.touches[0] ? event.touches[0].clientY : null);
+    };
+    const handleTouchMove = (event) => {
+      if (event.touches && event.touches[0]) {
+        mouse.x = event.touches[0].clientX;
+        mouse.y = event.touches[0].clientY;
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     class Particle {
       constructor(x, y, directionX, directionY, size) {
@@ -313,12 +326,18 @@ const BackgroundCanvas = () => {
     const animate = () => {
       try {
         animationFrameId = requestAnimationFrame(animate);
-        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        
+        // Use hardware-accelerated clearing
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         if (particlesArray && particlesArray.length > 0) {
+          // Batch operations for better performance
+          ctx.save();
           for (let i = 0; i < particlesArray.length; i++) {
             if (particlesArray[i]) particlesArray[i].update();
           }
           connect();
+          ctx.restore();
         }
       } catch (error) {
         console.warn('Canvas animation error:', error);
@@ -337,6 +356,7 @@ const BackgroundCanvas = () => {
 
     return () => { // Cleanup function
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
@@ -354,7 +374,10 @@ const BackgroundCanvas = () => {
       zIndex: '-10 !important', 
       opacity: '0.4 !important', 
       pointerEvents: 'none !important',
-      background: 'transparent !important'
+      background: 'transparent !important',
+      willChange: 'transform',
+      transform: 'translateZ(0)',
+      backfaceVisibility: 'hidden'
     }} 
   />;
 };
